@@ -39,7 +39,7 @@ function [barNote, onsetBar, midiData] = bar_note_data(midiData, timeSig)
             if ~isempty(noteBar)
                 noteBar = sortrows(noteBar, 1);
                 noteBar = trill_detection(noteBar); % tri 處理
-                noteBar = normalize_midi_data(noteBar); % duration normalize
+                %noteBar = normalize_midi_data(noteBar); % duration normalize
                 noteBar(:,2) = min(sum(noteBar(:,1:2),2), barOffset)-noteBar(:,1); % offset不要超過此小節的offset
                 
                 barNote{currentBar, 1} = noteBar;

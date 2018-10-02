@@ -70,7 +70,7 @@ function [result, keyNameEnd] = key_analysis_new(barNote, chord, para)
     segment = create_segment(scoreMerge);
     %%
     
-    [key.ori, ~] = segment2mat(segment, scoreMerge);  % 沒篩選的segment
+    [key.ori, ~] = segment2mat(segment, scoreMerge);  % 沒篩選的segment 
 %     把長度為1得segment刪掉
     segment1 = segment(cat(1, segment.lens) > 1);  % 刪除長度為1的segment
 %     再轉回分數矩陣

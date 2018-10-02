@@ -2,10 +2,10 @@ clear; clc; close all;
 addpath('../');
 addpath('../toolbox/midi_lib/midi_lib');
 
-isSave = 1;
+isSave = 0;
 name = {'m_16_1', 'm_7_1', 'b_4_1', 'b_20_1', 'c_40_1', 'c_47_1', 'h_37_1', 'h_23_1', ...
         'm_16_2', 'm_7_2', 'b_4_2', 'b_20_2', 'h_37_2'};
-
+name = {'m_16_1'}
 fpath = '../midi/pei/';
 % file = dir(fullfile([fpath '*.mid']));
 
@@ -17,7 +17,8 @@ for i = 1:length(name)
 %     fname = erase(file(i).name, ".mid")
     fname = name{i};
     
-    [midiData, timeSig] = midi_Preprocess([fpath fname]);
+    %[midiData, timeSig] = midi_Preprocess([fpath fname]);
+    [midiData, timeSig] = xml_Preprocess([fpath fname]);
     [barNote, barOnset] = bar_note_data(midiData, timeSig); % each bar's information
       
     if strcmp(fname, 'b_20_2'); timeSig(1,:) = []; end % ¯S®í³B²z
