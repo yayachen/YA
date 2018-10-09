@@ -15,7 +15,7 @@
 %     addpath('../');
 %     addpath('../toolbox/midi_lib/midi_lib');
 %     fpath = '../midi/pei/';
-%     filename = 'm_16_1';
+%     filename = 'b_4_1';
 %     [midiData, timeSig]  = midi_Preprocess([fpath filename]);
 %     [barNote, onsetBar] = bar_note_data(midiData, timeSig);
 % 
@@ -24,7 +24,7 @@
 %     para.isDurWeight = 0;
 %%
 function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, para)
-    if nargin < 4, para = []; end
+    %if nargin < 4, para = []; end
     if isfield(para,'isNowTemplate')==0
         para.isNowTemplate = 1;
     end
@@ -164,18 +164,18 @@ function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, p
                     if refNextBarRoot
                         idx               = find(Resolution_Dim7.idx(j-1)~=0);
                         nowRoot           = ~(ceil(mod(Resolution_Dim7.chordIdx{j-1,idx(end)},12)/12))*12 + mod(Resolution_Dim7.chordIdx{j-1,idx(end)},12);
-                        nextRoot          = Optimal.pitch_no(j,k-1);
+                        nextRoot          = Optimal.pitchNo{j,k-1};
                         trueRoot          = ~(ceil(mod((nextRoot-1),12)/12))*12 + mod((nextRoot-1),12);
                         refNextBarRoot    = ~refNextBarRoot;
 
                         if  any(nowRoot == trueRoot)
                             Optimal.Chord(j-1, idx(end))     = Resolution_Dim7.chordIdx{j-1,idx(end)}(nowRoot == trueRoot);
-                            Optimal.templ_no(j-1, idx(end))  = ceil(Optimal.Chord(j-1,idx(end))/12);
-                            Optimal.pitch_no(j-1, idx(end))  = ~(ceil(mod(Optimal.Chord(j-1,idx(end)),12)/12))*12 + mod(Optimal.Chord(j-1,idx(end)),12);
-                            Optimal.ChordName{j-1, idx(end)} = strcat(pitchName(Optimal.pitch_no(j-1,idx(end))), tempName(Optimal.templ_no(j-1,idx(end))));    
+                            Optimal.templateNo(j-1, idx(end))  = ceil(Optimal.Chord(j-1,idx(end))/12);
+                            Optimal.pitchNo{j-1, idx(end)}  = ~(ceil(mod(Optimal.Chord(j-1,idx(end)),12)/12))*12 + mod(Optimal.Chord(j-1,idx(end)),12);
+                            Optimal.ChordName{j-1, idx(end)} = strcat(pitchName(Optimal.pitchNo{j-1,idx(end)}), tempName(Optimal.templateNo(j-1,idx(end))));    
 
-                            predictChord(eva_i, 4) = Optimal.ChordName{j-1,idx(end)};
-                            predictChord{eva_i, 5} = Optimal.Chord(j-1,idx(end));
+                            predictChord(evaluationIdx, 4) = Optimal.ChordName{j-1,idx(end)};
+                            predictChord{evaluationIdx, 5} = Optimal.Chord(j-1,idx(end));
                         else
                             warning([ 'bar ' num2str(j) ', step3 : Fully Diminished 7th 沒有解決']);
                             Optimal.tieBreaking(j, k - 1) = {'no solve'};
@@ -205,9 +205,9 @@ function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, p
                                 AnsChord = Resolution_Dim7.chordIdx{j,resolution_idx(t)}(nowRoot == trueRoot);
 
                                 Optimal.Chord(j,resolution_idx(t))     = AnsChord;
-                                Optimal.templ_no(j,resolution_idx(t))  = ceil(AnsChord/12); 
-                                Optimal.pitch_no(j,resolution_idx(t))  = ~(ceil(mod(AnsChord,12)/12))*12 + mod(AnsChord,12);
-                                Optimal.ChordName{j,resolution_idx(t)} = strcat(pitchName(Optimal.pitch_no(j,resolution_idx(t))), tempName(Optimal.templ_no(j,resolution_idx(t))));    
+                                Optimal.templateNo(j,resolution_idx(t))  = ceil(AnsChord/12); 
+                                Optimal.pitchNo{j,resolution_idx(t)}  = ~(ceil(mod(AnsChord,12)/12))*12 + mod(AnsChord,12);
+                                Optimal.ChordName{j,resolution_idx(t)} = strcat(pitchName(Optimal.pitchNo{j,resolution_idx(t)}), tempName(Optimal.templateNo(j,resolution_idx(t))));    
 
                                 nowBarIdx = find(cell2mat(predictChord(2:end,1))==j);
                                 predictChord(nowBarIdx(resolution_idx(t))+1,4) = Optimal.ChordName{j,resolution_idx(t)};

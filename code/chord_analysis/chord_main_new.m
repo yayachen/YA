@@ -5,7 +5,7 @@ addpath('../toolbox/midi_lib/midi_lib');
 isSave = 0;
 name = {'m_16_1', 'm_7_1', 'b_4_1', 'b_20_1', 'c_40_1', 'c_47_1', 'h_37_1', 'h_23_1', ...
         'm_16_2', 'm_7_2', 'b_4_2', 'b_20_2', 'h_37_2'};
-name = {'m_16_1'}
+name = {'m_16_1', 'm_7_1', 'b_4_1', 'b_20_1', 'c_40_1', 'c_47_1', 'h_37_1', 'h_23_1'}
 fpath = '../midi/pei/';
 % file = dir(fullfile([fpath '*.mid']));
 
@@ -40,7 +40,7 @@ for i = 1:length(name)
     unit = 0.1; % 評估的單位
     GTdata = csvimport(['../annotation/trans_' fname '.csv']);
     [CSR, chordNameGT, chordNamePredict] = chord_evaluation_new(chordPredict, GTdata, timeSig(1), unit);
-
+    fname,CSR
 % 存檔
     if isSave
         save(['chord_result/pei/' fname '.mat'], 'chordPredict');
