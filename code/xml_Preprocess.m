@@ -22,7 +22,7 @@ function [ midiInfo, timeSig ] = xml_Preprocess( midi_fn)
         [status,cmdout] = system(command)
     end 
     load([midi_fn '.mat']) ;  %load matrix
-    midiInfo(:,[1,2,4,9,10]) = matrix;
+    midiInfo(:,[1,2,4,8,9,10]) = matrix;
     
     % 以下拍號部分還是用學姊的程式碼
     midiInfo(midiInfo(:,2)==0,:) = [];
