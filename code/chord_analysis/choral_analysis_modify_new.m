@@ -23,7 +23,7 @@
 %     para.isPartitionDBeat = 0;
 %     para.isDurWeight = 0;
 %%
-function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, para)
+function predictChord = choral_analysis_modify_new(fname,barNote, onsetBar, timeSig, para)
     %if nargin < 4, para = []; end
     if isfield(para,'isNowTemplate')==0
         para.isNowTemplate = 1;
@@ -34,8 +34,11 @@ function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, p
     if isfield(para,'isDurWeight')==0
         para.isDurWeight = 1;
     end
+    if isfield(para,'isVoicing')==0
+        para.isVoicing = 1;
+    end
 
-    % para
+    % para.isNowTemplate
     if para.isNowTemplate
         tempName    = {    'maj',      '7',    'min',    'dim', 'xxx',  'X'};
         template    = [ 0,4,7,-1; 0,4,7,10; 0,3,7,-1; 0,3,6,-1]; 
@@ -43,6 +46,19 @@ function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, p
         tempName    = {    'maj',       '7',      'min','Fully dim7', 'Half dim7',     'dim3',   'X'};
         template    = [ 0,4,7,-1;  0,4,7,10;   0,3,7,-1;    0,3,6, 9;    0,3,6,10;   0,3,6,-1 ];
     end
+    
+    % para.isVoicing
+    if para.isVoicing == 1
+        load('Voicing\ALL_Voicing.mat');
+    elseif para.isVoicing == 2
+        load(['Voicing\' fname '_Voicing.mat'])
+    elseif ~para.isVoicing
+        fields = fieldnames(Voicing);
+        for i=1:numel(fields)
+            Voicing.(string(fields(i))) = ones(1,12)*0.5;
+        end
+    end
+    
     pitchName   = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'};
      
     evaluationIdx = 1;
@@ -67,15 +83,20 @@ function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, p
              for p1 = 1:partitionNum
                  for p2 = p1+1:partitionNum      
                      for t = 1:templateNum
+                         templateName = string(tempName(t));
+                         if templateName =='7'; templateName = 'dom7'; end
+                         templateVoicing = Voicing.(templateName);
                          for p = 1:12
                              templateNo = mod(template(t,(template(t,:)~=-1)) + p - 1 , 12);
                              Template = zeros(1,12); 
                              Template(1,templateNo + 1) = 1;
-
+                             
                              rootS(p1, p2, (t - 1) * 12 + p) = sum(sum(pitchClass(p1:p2-1, templateNo(1) + 1)));             % 根音的score
-                             P(p1, p2, (t - 1) * 12 + p)     = sum(sum(pitchClass(p1:p2-1, templateNo + 1)));                % 片段 有, 和弦 有
-                             N(p1, p2, (t - 1) * 12 + p)     = sum(sum(pitchClass(p1:p2-1, setdiff(1:12,templateNo+1))));    % 片段 有, 和弦沒有  
-                             M(p1, p2, (t - 1) * 12 + p)     = sum((sum(pitchClass(p1:p2-1, :),1) == 0) .* Template);        % 片段沒有, 和弦 有
+                             
+                             P(p1, p2, (t - 1) * 12 + p)     = sum(sum(pitchClass(p1:p2-1, templateNo + 1).*templateVoicing(Template==1)));                % 片段 有, 和弦 有
+                             N(p1, p2, (t - 1) * 12 + p)     = sum(sum(pitchClass(p1:p2-1, Template == 0).*(1-templateVoicing(Template == 0))));    % 片段 有, 和弦沒有  
+                             M(p1, p2, (t - 1) * 12 + p)     = sum(((sum(pitchClass(p1:p2-1, :),1) == 0) .* Template).*(templateVoicing));        % 片段沒有, 和弦 有
+                             
                              S(p1, p2, (t - 1) * 12 + p)     = ...
                                  P(p1, p2, (t - 1) * 12 + p) - (N(p1, p2, (t - 1) * 12 + p) + M(p1, p2, (t-1) * 12 + p));
                          end

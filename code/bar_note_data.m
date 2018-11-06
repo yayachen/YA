@@ -28,7 +28,7 @@ function [barNote, onsetBar, midiData] = bar_note_data(midiData, timeSig)
             onsetBar(currentBar) = barOnset;
 
             % 前個小節圓滑線至此小節的音符slur
-            offsetInBarIdx = intersect(find(sum(midiData(:, 1:2), 2) < barOffset), find(sum(midiData(:, 1:2), 2) > barOnset));
+            offsetInBarIdx = find(sum(midiData(:, 1:2), 2) > barOnset);
             onsetbeforeBarIdx = intersect(find(midiData(:, 1) < barOnset), offsetInBarIdx);
             slurNote = midiData(onsetbeforeBarIdx, :);
             slurNote(:, 2) = sum(slurNote(:, 1:2), 2) - barOnset; % duration

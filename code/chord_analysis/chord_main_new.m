@@ -6,7 +6,6 @@ isSave = 0;
 name = {'m_16_1', 'm_7_1', 'b_4_1', 'b_20_1', 'c_40_1', 'c_47_1', 'h_37_1', 'h_23_1', ...
         'm_16_2', 'm_7_2', 'b_4_2', 'b_20_2', 'h_37_2'};
 name = {'m_16_1', 'm_7_1', 'b_4_1', 'b_20_1', 'c_40_1', 'c_47_1', 'h_37_1', 'h_23_1'}
-name = {'m_7_1'}
 
 fpath = '../midi/pei/';
 % file = dir(fullfile([fpath '*.mid']));
@@ -29,8 +28,8 @@ for i = 1:length(name)
     parameter.isNowTemplate = 1;
     parameter.isPartitionDBeat = 1;
     parameter.isDurWeight = 1;
-
-    chordPredict = choral_analysis_modify_new(barNote, barOnset, timeSig(1), parameter);
+    parameter.isVoicing  =  2;
+    chordPredict = choral_analysis_modify_new(fname,barNote, barOnset, timeSig(1), parameter);
 
 %% 評估
     if timeSig(2) ~= 2 % 因為note陣列會自動把拍號 map到 X/4拍，所以不是X/4的要轉換一下才可以跟GT比較。
