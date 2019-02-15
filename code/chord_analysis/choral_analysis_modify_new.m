@@ -43,6 +43,40 @@ function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, p
         tempName    = {    'maj',       '7',      'min','Fully dim7', 'Half dim7',     'dim3',   'X'};
         template    = [ 0,4,7,-1;  0,4,7,10;   0,3,7,-1;    0,3,6, 9;    0,3,6,10;   0,3,6,-1 ];
     end
+<<<<<<< Updated upstream
+=======
+    
+    
+    % para.isVoicing
+    if para.isVoicing == 1
+        load('Voicing\ALL_Voicing.mat');
+    elseif para.isVoicing == 2
+        load(['Voicing\' fname '_Voicing.mat'])
+    elseif ~para.isVoicing
+        load('Voicing\ALL_Voicing.mat');  %讀進來再蓋掉
+        fields = fieldnames(Voicing);
+        for i=1:numel(fields)
+            Voicing.(string(fields(i))) = ones(1,12)*0.5;
+        end
+    end
+    
+    if para.isVoicing ~=0
+        fields = fieldnames(Voicing);
+        for i=1:numel(fields)
+            v = Voicing.(string(fields(i))) ;
+            %F = ceil(3 * tiedrank(v) / length(v));
+            %Voicing.(string(fields(i))) =discretize(F,3,[0.4,0.5,0.6]);
+            if v == 0
+                break
+            end
+            edge = [min(v):(max(v)-min(v))/2:max(v)];
+            bin = discretize(v,edge,[1,3]);
+            bin(bin==1) = discretize(v(bin==1),2);
+            Voicing.(string(fields(i))) = discretize(bin,3,[0.4,0.5,0.6]);
+        end
+    end
+    %F = ceil(3 * tiedrank(a.maj) / length(a.maj))   Y = discretize(F,3,[0.4,0.5,0.6])
+>>>>>>> Stashed changes
     pitchName   = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'};
      
     evaluationIdx = 1;
@@ -83,6 +117,7 @@ function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, p
                  end
              end
             [maxScoreMatrix, scoreMatrixIdx] = max(S, [], 3);
+            Score(:,:,:,j) =  S;
 
 %% 分段
             partitionPos = [minSeg(:,1)' - onsetBar(j), minSeg(end,2) - onsetBar(j)]; % partition 位置
@@ -226,6 +261,7 @@ function predictChord = choral_analysis_modify_new(barNote, onsetBar, timeSig, p
             
         end
     end
+    save(['chord_result/pei/' fname '_ALL_SCORE.mat'],'Score')
 end
 
 %%
@@ -254,25 +290,51 @@ function [pitchClass, minSeg] = min_seg_pitchclass(noteBar, onsetBar, para, time
     end
     
     %% 紀錄所有miniSeg中每個pitch class的weight
-    pitchClass = zeros(size(minSeg, 1), 12); % 紀錄每個miniSeg中pitch class
+    
+    function addScore2pitchClass(segment,note,weight)
+        noteOn = noteBar(note, 1) - onsetBar;
+        noteOff = sum(noteBar(note,1:2)) - onsetBar;
 
+        if noteOn <= minSeg(segment, 1); noteOn = minSeg(segment, 1); end
+        if noteOff >= minSeg(segment, 2); noteOff = minSeg(segment, 2); end
+        if noteOff - noteOn > 0   % 判斷落在minSeg內的音
+            pitchNo = mod(noteBar(note, 4), 12) + 1;
+
+            addScore = 1;
+            if para.isDurWeight
+                addScore = ( noteOff - noteOn )*weight;
+            end
+            pitchClass(segment, pitchNo) = pitchClass(segment, pitchNo) + addScore;
+            if (noteBar(note,4) < rootnote(3)) || (noteBar(note,4)==rootnote(3) && noteBar(note,2)> rootnote(4))   ;rootnote = [segment,note, noteBar(note,4),noteBar(note,2) ];end
+        end    
+    end
+    pitchClass = zeros(size(minSeg, 1), 12); % 紀錄每個miniSeg中pitch class
+    
+    rootnote = [0,0,127,0];   % segment,note , pitch ,duration
     for s = 1:size(minSeg, 1)
         for n = 1:size(noteBar, 1)
-            noteOn = noteBar(n, 1) - onsetBar;
-            noteOff = sum(noteBar(n,1:2)) - onsetBar;
-            
-            if noteOn <= minSeg(s, 1); noteOn = minSeg(s, 1); end
-            if noteOff >= minSeg(s, 2); noteOff = minSeg(s, 2); end
-            if noteOff - noteOn > 0   % 判斷落在minSeg內的音
-                pitchNo = mod(noteBar(n, 4), 12) + 1;
-                
-                addScore = 1;
-                if para.isDurWeight
-                    addScore = noteOff - noteOn;
-                end
-                pitchClass(s, pitchNo) = pitchClass(s, pitchNo) + addScore;
-            end
-        end     
+            addScore2pitchClass(s,n,1)
+%             noteOn = noteBar(n, 1) - onsetBar;
+%             noteOff = sum(noteBar(n,1:2)) - onsetBar;
+%             
+%             if noteOn <= minSeg(s, 1); noteOn = minSeg(s, 1); end
+%             if noteOff >= minSeg(s, 2); noteOff = minSeg(s, 2); end
+%             if noteOff - noteOn > 0   % 判斷落在minSeg內的音
+%                 pitchNo = mod(noteBar(n, 4), 12) + 1;
+%                 
+%                 addScore = 1;
+%                 if para.isDurWeight
+%                     addScore = noteOff - noteOn;
+%                 end
+%                 pitchClass(s, pitchNo) = pitchClass(s, pitchNo) + addScore;
+%                 
+%                 if noteBar(n,4) < rootnote(2);rootnote = [n, noteBar(n,4) ];end
+%             end    
+        end
+        
+        if rootnote(2) > 0; addScore2pitchClass(s,rootnote(2),1) ;end
     end
+    if rootnote(2) > 0; addScore2pitchClass(rootnote(1),rootnote(2),2) ;end
+
     minSeg = minSeg + onsetBar;
 end
